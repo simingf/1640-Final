@@ -30,13 +30,19 @@ class RotNetDataset(Dataset):
         label = torch.tensor(rotation_angle, dtype=torch.long)
         return rotated_image, label
 
-def get_dataloader(num_images=10000, image_size=(640, 640), batch_size=64, shuffle=True, preprocess_func=None):
+def get_dataloader(start_idx=0, num_images=10000, image_size=(640, 640), batch_size=64, shuffle=True, preprocess_func=None):
     image_dir = os.path.join(os.path.dirname(__file__), "../dataset")
     image_file_paths = [os.path.join(image_dir, f"{i}.png") for i in range(num_images)]
     images = np.array([np.array(Image.open(img_path)) for img_path in image_file_paths])
     dataset = RotNetDataset(images, image_size=image_size, preprocess_func=preprocess_func)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
     return dataloader
+
+def get_train_dataloader(num_images=8000, image_size=(640, 640), batch_size=64, shuffle=True, preprocess_func=None):
+    return get_dataloader(0, num_images, image_size, batch_size, shuffle, preprocess_func)
+
+def get_test_dataloader(num_images=2000, image_size=(640, 640), batch_size=64, shuffle=False, preprocess_func=None):
+    return get_dataloader(8000, num_images, image_size, batch_size, shuffle, preprocess_func)
 
 if __name__ == "__main__":
     dataloader = get_dataloader(num_images=128, image_size=(64, 64))
