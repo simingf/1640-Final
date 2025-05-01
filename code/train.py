@@ -14,7 +14,7 @@ class SimpleModel(nn.Module):
         x = self.flatten(x)
         return self.fc(x)
 
-def train(train_loader, test_loader, model, criterion, optimizer, num_epochs):
+def train(train_loader, test_loader, model, criterion, optimizer, num_epochs, file_path=None):
     for epoch in tqdm(range(num_epochs)):
         for batch_idx, (inputs, targets) in enumerate(tqdm(train_loader)):
             outputs = model(inputs)
@@ -22,7 +22,14 @@ def train(train_loader, test_loader, model, criterion, optimizer, num_epochs):
             loss = criterion(outputs, targets)
             loss.backward()
             optimizer.step()
-        print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}")
+        for batch_idx, (inputs, targets) in enumerate(tqdm(test_loader)):
+            outputs = model(inputs)
+            test_loss = criterion(outputs, targets)
+        print(f"Epoch [{epoch+1}/{num_epochs}], Train Loss: {loss.item():.4f}, Test Loss: {test_loss.item():.4f}")
+
+    if file_path:
+        torch.save(model.state_dict(), file_path)
+        print(f"Model saved to {file_path}")
 
 if __name__ == "__main__":
     train_loader = get_train_dataloader(num_images=512, image_size=(64, 64))
@@ -39,6 +46,4 @@ if __name__ == "__main__":
 
     num_epochs = 10
 
-    train(train_loader, test_loader, model, criterion, optimizer, num_epochs)
-
-    torch.save(model.state_dict(), "../model_weights/simple_model.pth")
+    train(train_loader, test_loader, model, criterion, optimizer, num_epochs, file_path="../model_weights/simple_model.pth")
