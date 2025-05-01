@@ -7,7 +7,7 @@ from torchvision.transforms import ToTensor
 from PIL import Image
 import os
 
-class RotNetDataset(Dataset):
+class RotationDataset(Dataset):
     def __init__(self, images, image_size, preprocess_func=None):
         self.images = images
         self.image_size = image_size
@@ -34,7 +34,7 @@ def get_dataloader(start_idx=0, num_images=10000, image_size=(640, 640), batch_s
     image_dir = os.path.join(os.path.dirname(__file__), "../dataset")
     image_file_paths = [os.path.join(image_dir, f"{i}.png") for i in range(num_images)]
     images = np.array([np.array(Image.open(img_path)) for img_path in image_file_paths])
-    dataset = RotNetDataset(images, image_size=image_size, preprocess_func=preprocess_func)
+    dataset = RotationDataset(images, image_size=image_size, preprocess_func=preprocess_func)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
     return dataloader
 
