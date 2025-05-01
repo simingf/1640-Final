@@ -1,4 +1,5 @@
 # 1640 ignores
+dataset/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
