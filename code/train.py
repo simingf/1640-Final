@@ -15,6 +15,7 @@ class SimpleModel(nn.Module):
         return self.fc(x)
 
 def train(train_loader, test_loader, model, criterion, optimizer, num_epochs, file_path=None):
+    model.train()
     for epoch in tqdm(range(num_epochs)):
         for batch_idx, (inputs, targets) in enumerate(tqdm(train_loader)):
             outputs = model(inputs)
