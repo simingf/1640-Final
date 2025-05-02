@@ -17,7 +17,7 @@ def evaluate_model(model, weights_path, dataloader, device=None):
             outputs = model(inputs)
             preds = torch.argmax(outputs, dim=1).to(torch.float32)
             labels_degrees = torch.argmax(labels, dim=1).to(torch.float32)
-            dbg(preds, labels_degrees)
+            # dbg(preds, labels_degrees)
             batch_diff = torch.mean(torch.abs(preds - labels_degrees))
             diff.append(batch_diff.item())
 
