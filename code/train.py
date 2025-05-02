@@ -17,7 +17,7 @@ def train(train_loader, test_loader, model, criterion, optimizer, num_epochs, fi
             optimizer.step()
         model.eval()
         with torch.no_grad():
-            for batch_idx, (inputs, targets) in enumerate(tqdm(test_loader)):
+            for inputs, targets in tqdm(test_loader):
                 outputs = model(inputs)
                 test_loss = criterion(outputs, targets)
         print(f"Epoch [{epoch+1}/{num_epochs}], Train Loss: {loss.item():.4f}, Test Loss: {test_loss.item():.4f}")
