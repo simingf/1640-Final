@@ -2,6 +2,16 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+class SimpleModel(nn.Module):
+    def __init__(self, input_size = 64 * 64 * 3, output_size = 360):
+        super(SimpleModel, self).__init__()
+        self.flatten = nn.Flatten()
+        self.fc = nn.Linear(input_size, output_size)
+
+    def forward(self, x):
+        x = self.flatten(x)
+        return self.fc(x)
+
 class RotationModel(nn.Module):
     def __init__(self, num_classes=36):
         super(RotationModel, self).__init__()
