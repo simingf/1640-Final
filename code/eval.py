@@ -15,8 +15,8 @@ def evaluate_model(model, weights_path, dataloader, device=None):
         for inputs, labels in tqdm(dataloader):
             inputs, labels = inputs.to(device), labels.to(device)
             outputs = model(inputs)
-            preds = torch.argmax(outputs, dim=1)
-            labels_degrees = torch.argmax(labels, dim=1)
+            preds = torch.argmax(outputs, dim=1).to(torch.float32)
+            labels_degrees = torch.argmax(labels, dim=1).to(torch.float32)
             dbg(preds, labels_degrees)
             batch_diff = torch.mean(torch.abs(preds - labels_degrees))
             diff.append(batch_diff.item())
@@ -32,8 +32,8 @@ if __name__ == "__main__":
     train_dataloader = get_train_dataloader(num_images=512, image_size=(64, 64), batch_size=64, shuffle=True)
     test_dataloader = get_test_dataloader(num_images=512, image_size=(64, 64), batch_size=64, shuffle=False)
     
-    accuracy = evaluate_model(model, weights_path, train_dataloader, device)
-    print(f"Train Accuracy: {accuracy.item() * 100:.2f}%")
+    train_degree_diff = evaluate_model(model, weights_path, train_dataloader, device)
+    print(f"Train Average Degree Difference: {train_degree_diff.item():.2f}")
 
-    accuracy = evaluate_model(model, weights_path, test_dataloader, device)
-    print(f"Test Accuracy: {accuracy.item() * 100:.2f}%")
+    test_degree_diff = evaluate_model(model, weights_path, test_dataloader, device)
+    print(f"Test Average Degree Difference: {test_degree_diff.item():.2f}")
