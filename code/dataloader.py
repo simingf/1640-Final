@@ -28,7 +28,9 @@ class RotationDataset(Dataset):
         if self.preprocess_func:
             rotated_image = self.preprocess_func(rotated_image)
         label = torch.tensor(rotation_angle, dtype=torch.long)
-        return rotated_image, label
+        one_hot_label = torch.zeros(360, dtype=torch.float)
+        one_hot_label[label] = 1.0
+        return rotated_image, one_hot_label
 
 def get_dataloader(start_idx=0, num_images=10000, image_size=(640, 640), batch_size=64, shuffle=True, preprocess_func=None):
     image_dir = os.path.join(os.path.dirname(__file__), "../dataset")
