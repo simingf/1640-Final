@@ -30,15 +30,15 @@ class RotationDataset(Dataset):
         label = torch.tensor(rotation_angle, dtype=torch.long)
         one_hot_label = torch.zeros(360, dtype=torch.float)
         one_hot_label[(label - 2) % 360] = 0.05
-        one_hot_label[(label - 1) % 360] = 0.1
-        one_hot_label[label] = 0.7
-        one_hot_label[(label + 1) % 360] = 0.1
+        one_hot_label[(label - 1) % 360] = 0.05
+        one_hot_label[label] = 0.8
+        one_hot_label[(label + 1) % 360] = 0.05
         one_hot_label[(label + 2) % 360] = 0.05
         return rotated_image, one_hot_label
 
 def get_dataloader(start_idx=0, num_images=10000, image_size=(640, 640), batch_size=64, shuffle=True, preprocess_func=None):
     image_dir = os.path.join(os.path.dirname(__file__), "../dataset")
-    image_file_paths = [os.path.join(image_dir, f"{i}.png") for i in range(num_images)]
+    image_file_paths = [os.path.join(image_dir, f"{i}.png") for i in range(start_idx, start_idx + num_images)]
     images = np.array([np.array(Image.open(img_path)) for img_path in image_file_paths])
     dataset = RotationDataset(images, image_size=image_size, preprocess_func=preprocess_func)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
