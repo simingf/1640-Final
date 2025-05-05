@@ -26,6 +26,7 @@ import torch
 import torch.nn as nn
 import torchvision.transforms.functional as TF
 from PIL import Image
+from PIL import ImageDraw
 from tqdm import tqdm
 
 from dataloader import get_test_dataloader
@@ -48,11 +49,26 @@ def tensor_to_pil(img_tensor):
     t = t.permute(1, 2, 0)          # C,H,W  ➜  H,W,C
     return Image.fromarray(t.numpy())
 
+def circle_mask(image):
+    """
+    Apply a circular mask to the image.
+    Args:
+        image (PIL.Image): The input image.
+    Returns:
+        PIL.Image: The image with the circular mask applied.
+    """
+    width, height = image.size
+    assert width == height, "Image must be square for circular mask."
+    mask = Image.new("L", (width, height), 0)
+    draw = ImageDraw.Draw(mask)
+    draw.ellipse((0, 0, width, height), fill=255)
+    image.putalpha(mask)
+    return image
 
 # ---------- main visualisation script ----------------------------------------
 def main():
     # --- configuration --------------------------------------------------------
-    NUM_EXAMPLES      = 10
+    NUM_EXAMPLES      = 32
     IMAGE_SIZE        = (224, 224)            # must match train.py
     WEIGHTS_PATH      = Path("../model_weights/resnet18.pth")
     OUT_DIR           = Path("../visualization")
@@ -62,7 +78,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "mps")
 
     # --- data -----------------------------------------------------------------
-    test_loader = get_test_dataloader(num_images=2000, image_size=IMAGE_SIZE)
+    test_loader = get_test_dataloader(num_images=64, image_size=IMAGE_SIZE)
 
     # --- model ----------------------------------------------------------------
     model = ResNetModel().to(device)
@@ -91,15 +107,20 @@ def main():
                 pred_deg = int(preds[i].item())
                 gt_deg   = int(targets[i].item())
 
-                # original image to PIL
-                pil_img  = tensor_to_pil(inputs[i])
+                captcha = tensor_to_pil(inputs[i])
+                captcha = circle_mask(captcha)
+                captcha_file = OUT_DIR / f"sample_{written:02d}_captcha.png"
+                captcha.save(captcha_file)
 
-                # rotate **counter‑clockwise** by predicted degrees
-                # If you want clockwise, use angle = -pred_deg
-                rotated  = TF.rotate(pil_img, angle=pred_deg, fill=0)
+                sol_image = TF.rotate(captcha, angle=-gt_deg, fill=0)
+                sol_image = circle_mask(sol_image)
+                sol_file = OUT_DIR / f"sample_{written:02d}_solution.png"
+                sol_image.save(sol_file)
 
-                out_file = OUT_DIR / f"sample_{written:02d}_pred_{pred_deg}_gt_{gt_deg}.png"
-                rotated.save(out_file)
+                predicted_image = TF.rotate(captcha, angle=-pred_deg, fill=0)
+                predicted_image = circle_mask(predicted_image)
+                predicted_file = OUT_DIR / f"sample_{written:02d}_predicted.png"
+                predicted_image.save(predicted_file)
 
                 txt.write(
                     f"sample_{written:02d}: predicted = {pred_deg:3d}°, "
