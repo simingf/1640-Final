@@ -22,6 +22,21 @@ def evaluate_model(model, dataloader, device=None):
     return avg_diff
 
 
+def generate_histogram_vals(model, dataloader, device=None):
+    model.eval()
+
+    all_deg_diff = []
+    with torch.no_grad():
+        for inputs, labels in dataloader:
+            inputs, labels = inputs.to(device), labels.to(device)
+            outputs = model(inputs)
+            preds = torch.argmax(outputs, dim=1).to(torch.float32)
+            labels_degs = torch.argmax(labels, dim=1).to(torch.float32)
+            deg_diffs = torch.abs(preds - labels_degs)
+            all_deg_diff.extend(deg_diffs.cpu().numpy())
+
+    return all_deg_diff
+
 if __name__ == "__main__":
     model = SimpleModel()
     model.load_state_dict(torch.load("../model_weights/simple_model.pth"))
