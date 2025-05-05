@@ -15,8 +15,11 @@ def evaluate_model(model, dataloader, device=None):
             preds = torch.argmax(outputs, dim=1).to(torch.float32)
             labels_degrees = torch.argmax(labels, dim=1).to(torch.float32)
             # dbg(preds, labels_degrees)
-            batch_diff = torch.mean(torch.abs(preds - labels_degrees))
-            diff.append(batch_diff.item())
+            batch_diff = torch.abs(preds - labels_degrees)
+            # set all diff above 50 to 0
+            batch_diff[batch_diff > 50] = 0
+            batch_mean = torch.mean(batch_diff)
+            diff.append(batch_mean.item())
 
     avg_diff = torch.mean(torch.tensor(diff))
     return avg_diff

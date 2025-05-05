@@ -2,6 +2,7 @@
 dataset/
 model_weights/
 visualization/
+visualization180/
 
 # MacOS
 .DS_Store

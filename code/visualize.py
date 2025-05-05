@@ -68,17 +68,17 @@ def circle_mask(image):
 # ---------- main visualisation script ----------------------------------------
 def main():
     # --- configuration --------------------------------------------------------
-    NUM_EXAMPLES      = 32
+    NUM_EXAMPLES      = 5
     IMAGE_SIZE        = (224, 224)            # must match train.py
     WEIGHTS_PATH      = Path("../model_weights/resnet18.pth")
-    OUT_DIR           = Path("../visualization")
+    OUT_DIR           = Path("../visualization180")
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     TXT_PATH          = OUT_DIR / "predictions.txt"
 
     device = torch.device("cuda" if torch.cuda.is_available() else "mps")
 
     # --- data -----------------------------------------------------------------
-    test_loader = get_test_dataloader(num_images=64, image_size=IMAGE_SIZE)
+    test_loader = get_test_dataloader(num_images=2000, image_size=IMAGE_SIZE)
 
     # --- model ----------------------------------------------------------------
     model = ResNetModel().to(device)
@@ -107,26 +107,27 @@ def main():
                 pred_deg = int(preds[i].item())
                 gt_deg   = int(targets[i].item())
 
-                captcha = tensor_to_pil(inputs[i])
-                captcha = circle_mask(captcha)
-                captcha_file = OUT_DIR / f"sample_{written:02d}_captcha.png"
-                captcha.save(captcha_file)
+                if abs(pred_deg - gt_deg) == 180:
+                    captcha = tensor_to_pil(inputs[i])
+                    captcha = circle_mask(captcha)
+                    captcha_file = OUT_DIR / f"sample_{written:02d}_captcha.png"
+                    captcha.save(captcha_file)
 
-                sol_image = TF.rotate(captcha, angle=-gt_deg, fill=0)
-                sol_image = circle_mask(sol_image)
-                sol_file = OUT_DIR / f"sample_{written:02d}_solution.png"
-                sol_image.save(sol_file)
+                    sol_image = TF.rotate(captcha, angle=-gt_deg, fill=0)
+                    sol_image = circle_mask(sol_image)
+                    sol_file = OUT_DIR / f"sample_{written:02d}_solution.png"
+                    sol_image.save(sol_file)
 
-                predicted_image = TF.rotate(captcha, angle=-pred_deg, fill=0)
-                predicted_image = circle_mask(predicted_image)
-                predicted_file = OUT_DIR / f"sample_{written:02d}_predicted.png"
-                predicted_image.save(predicted_file)
+                    predicted_image = TF.rotate(captcha, angle=-pred_deg, fill=0)
+                    predicted_image = circle_mask(predicted_image)
+                    predicted_file = OUT_DIR / f"sample_{written:02d}_predicted.png"
+                    predicted_image.save(predicted_file)
 
-                txt.write(
-                    f"sample_{written:02d}: predicted = {pred_deg:3d}°, "
-                    f"ground‑truth = {gt_deg:3d}°\n"
-                )
-                written += 1
+                    txt.write(
+                        f"sample_{written:02d}: predicted = {pred_deg:3d}°, "
+                        f"ground‑truth = {gt_deg:3d}°\n"
+                    )
+                    written += 1
 
             if written >= NUM_EXAMPLES:
                 break
