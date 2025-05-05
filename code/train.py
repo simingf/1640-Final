@@ -4,12 +4,13 @@ import torch.optim as optim
 from tqdm import tqdm
 from dataloader import get_train_dataloader, get_test_dataloader
 from model import SimpleModel
+from eval import evaluate_model
 
-def train(train_loader, test_loader, model, criterion, optimizer, num_epochs, file_path=None):
-    
-    for epoch in tqdm(range(num_epochs)):
+def train(train_loader, test_loader, model, criterion, optimizer, num_epochs, device, file_path=None):
+    for epoch in range(num_epochs):
         model.train()
-        for batch_idx, (inputs, targets) in enumerate(tqdm(train_loader)):
+        for inputs, targets in train_loader:
+            inputs, targets = inputs.to(device), targets.to(device)
             outputs = model(inputs)
             optimizer.zero_grad()
             loss = criterion(outputs, targets)
@@ -17,10 +18,18 @@ def train(train_loader, test_loader, model, criterion, optimizer, num_epochs, fi
             optimizer.step()
         model.eval()
         with torch.no_grad():
-            for inputs, targets in tqdm(test_loader):
+            for inputs, targets in test_loader:
+                inputs, targets = inputs.to(device), targets.to(device)
                 outputs = model(inputs)
                 test_loss = criterion(outputs, targets)
         print(f"Epoch [{epoch+1}/{num_epochs}], Train Loss: {loss.item():.4f}, Test Loss: {test_loss.item():.4f}")
+
+        if epoch % 10 == 0:
+            train_degree_diff = evaluate_model(model, train_loader, device)
+            print(f"Train Average Degree Difference: {train_degree_diff.item():.2f}")
+
+            test_degree_diff = evaluate_model(model, test_loader, device)
+            print(f"Test Average Degree Difference: {test_degree_diff.item():.2f}")
 
     if file_path:
         torch.save(model.state_dict(), file_path)

@@ -4,15 +4,12 @@ from model import SimpleModel
 from tqdm import tqdm
 from util import dbg
 
-def evaluate_model(model, weights_path, dataloader, device=None):
-    model = model().to(device)
-    state_dict = torch.load(weights_path, map_location=device)
-    model.load_state_dict(state_dict)
+def evaluate_model(model, dataloader, device=None):
     model.eval()
 
     diff = []
     with torch.no_grad():
-        for inputs, labels in tqdm(dataloader):
+        for inputs, labels in dataloader:
             inputs, labels = inputs.to(device), labels.to(device)
             outputs = model(inputs)
             preds = torch.argmax(outputs, dim=1).to(torch.float32)
@@ -26,14 +23,15 @@ def evaluate_model(model, weights_path, dataloader, device=None):
 
 
 if __name__ == "__main__":
-    model = SimpleModel
-    weights_path = "../model_weights/simple_model.pth"
+    model = SimpleModel()
+    model.load_state_dict(torch.load("../model_weights/simple_model.pth"))
+
     device = torch.device("cuda" if torch.cuda.is_available() else "mps")
     train_dataloader = get_train_dataloader(num_images=512, image_size=(64, 64), batch_size=64, shuffle=True)
     test_dataloader = get_test_dataloader(num_images=512, image_size=(64, 64), batch_size=64, shuffle=False)
     
-    train_degree_diff = evaluate_model(model, weights_path, train_dataloader, device)
+    train_degree_diff = evaluate_model(model, train_dataloader, device)
     print(f"Train Average Degree Difference: {train_degree_diff.item():.2f}")
 
-    test_degree_diff = evaluate_model(model, weights_path, test_dataloader, device)
+    test_degree_diff = evaluate_model(model, test_dataloader, device)
     print(f"Test Average Degree Difference: {test_degree_diff.item():.2f}")
