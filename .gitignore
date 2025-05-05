@@ -1,6 +1,7 @@
 # 1640 ignores
 dataset/
 model_weights/
+visualization/
 
 # MacOS
 .DS_Store

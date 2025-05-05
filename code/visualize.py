@@ -29,7 +29,7 @@ from PIL import Image
 from tqdm import tqdm
 
 from dataloader import get_test_dataloader
-from train import SimpleModel   # re‑use the model definition from train.py
+from model import ResNetModel
 
 
 # ---------- helper utilities --------------------------------------------------
@@ -53,21 +53,19 @@ def tensor_to_pil(img_tensor):
 def main():
     # --- configuration --------------------------------------------------------
     NUM_EXAMPLES      = 10
-    IMAGE_SIZE        = (64, 64)            # must match train.py
-    WEIGHTS_PATH      = Path("../model_weights/simple_model.pth")
-    OUT_DIR           = Path("visualization_preds")
+    IMAGE_SIZE        = (224, 224)            # must match train.py
+    WEIGHTS_PATH      = Path("../model_weights/resnet18.pth")
+    OUT_DIR           = Path("../visualization")
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     TXT_PATH          = OUT_DIR / "predictions.txt"
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "mps")
 
     # --- data -----------------------------------------------------------------
-    test_loader = get_test_dataloader(num_images=128, image_size=IMAGE_SIZE)
+    test_loader = get_test_dataloader(num_images=2000, image_size=IMAGE_SIZE)
 
     # --- model ----------------------------------------------------------------
-    input_size  = IMAGE_SIZE[0] * IMAGE_SIZE[1] * 3   # 64×64×3 → 12 288
-    output_size = 360                                # 0–359°
-    model = SimpleModel(input_size, output_size).to(device)
+    model = ResNetModel().to(device)
 
     if not WEIGHTS_PATH.exists():
         raise FileNotFoundError(
@@ -84,6 +82,7 @@ def main():
             inputs, targets = inputs.to(device), targets.to(device)
             outputs = model(inputs)
             preds   = torch.argmax(outputs, dim=1)    # shape: (batch,)
+            targets = torch.argmax(targets, dim=1)
 
             for i in range(inputs.size(0)):
                 if written >= NUM_EXAMPLES:
